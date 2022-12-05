@@ -8,9 +8,10 @@ public class elevador extends Thread {
     public generador gen;
     public hotel pisos;
 
-    public elevador(hotel pisos, int pisoIni, int capacidad, generador gen, int maxViajes) {
+    public elevador(hotel pisos, generador gen, int pisoIni, int capacidad, int maxViajes) {
         this.gen = gen;
         this.PISO_ACTUAL = pisoIni;
+        this.CONTADOR_VIAJES = 0;
         this.CAPACIDAD_MAXIMA = capacidad;
         this.pisos = pisos;
         this.CONTADOR_PASAJEROS = 0;
@@ -30,182 +31,76 @@ public class elevador extends Thread {
      * 2 = en espera
      */
 
+    @Override
     public void run() {
-        pisos.getPisos();
-
         try {
-            while (true) {
-                if (getDireccion() == 0) {
-                    Thread.sleep(600);
-                    System.out.println("No hay viajes pendientes, el elevador se encuentra en 1");
-                    for (int pisoActual = obtenerPisoActual(); pisoActual >= 0; pisoActual--) {
+            while (CONTADOR_VIAJES < MAX_VIAJES) {
+                if (getSentido() == 0) {
+                    if(getPisoActual() == 0 && !viajesPendientes()){
+                    System.out.println("No hay viajes pendientes, el elevador se encuentra en el piso 1");
+                    synchronized (gen) {
+                        gen.wait();
+                    }
+                    }
+                    for (int pisoActual = getPisoActual(); pisoActual >= 0; pisoActual--) {
                         cambiarSentido();
-                        if (getDireccion() != 0) {
+                        if (getSentido() != 0) {
                             break;
                         }
-                        Thread.sleep(800);
+                        Thread.sleep(300);
                         avanza(pisoActual);
 
                     }
-                } else if (getDireccion() == 1) {
-                    Thread.sleep(600);
-                    System.out.println("--------------------------");
-                    System.out.println("El elevador va hacia arriba");
-                    System.out.println("--------------------------");
-                    for (int pisoActual = obtenerPisoActual(); pisoActual < this.pisos.getPisos(); pisoActual++) {
+                } else if (getSentido() == 1) {
+                    for (int pisoActual = getPisoActual(); pisoActual < this.pisos.getPisos(); pisoActual++) {
                         cambiarSentido();
-                        if (getDireccion() != 1) {
+                        if (getSentido() != 1) {
                             break;
                         }
 
-                        Thread.sleep(600);
+                        Thread.sleep(300);
                         avanza(pisoActual);
                         verGenerador();
                     }
-                } else if (getDireccion() == -1) {
-                    Thread.sleep(600);
-                    System.out.println("--------------------------");
-                    System.out.println("El elevador va hacia abajo");
-                    System.out.println("--------------------------");
-                    for (int pisoActual = obtenerPisoActual(); pisoActual >= 0; pisoActual--) {
+                } else if (getSentido() == -1) {
+                    for (int pisoActual = getPisoActual(); pisoActual >= 0; pisoActual--) {
                         cambiarSentido();
-                        if (getDireccion() != -1) {
+                        if (getSentido() != -1) {
                             break;
                         }
 
-                        Thread.sleep(600);
+                        Thread.sleep(300);
                         avanza(pisoActual);
                         verGenerador();
                     }
                 }
 
             }
-        } catch (
-
-        Exception e) {
-
+            System.out.println("El elevador ha completado su trabajo de "+this.MAX_VIAJES+" viajes");
+        } catch (InterruptedException e) {
+            System.out.println("Error en el hilo del elevador");
+            System.out.println(e);
         }
     }
 
-    public boolean viajesPendientes(int sentido) {
-        boolean pendientes = false;
-        switch (sentido) {
-            case 1:
-                for (int viajeActual = 0; viajeActual < gen.viajes.size(); viajeActual++) {
-                    generador viaje = (generador) gen.viajes.get(viajeActual);
-                    if ((viaje.destino >= obtenerPisoActual() && viaje.estado == 1)
-                            || (viaje.origen >= obtenerPisoActual() && viaje.estado == 2)) {
-                        pendientes = true;
-                        break;
-                    }
-                }
-                break;
-            case -1:
-                for (int viajeActual = 0; viajeActual < gen.viajes.size(); viajeActual--) {
-                    System.out.println(gen.viajes.size());
-                    generador viaje = (generador) gen.viajes.get(viajeActual);
-                    if ((viaje.origen <= obtenerPisoActual() && viaje.estado == 2)
-                            || (viaje.destino <= obtenerPisoActual() && viaje.estado == 1)) {
-                        pendientes = true;
-                        break;
-                    }
-                }
-                break;
-            default:
-                break;
-        }
-        return pendientes;
-
-    }
-
-    public int getDireccion() {
+    public int getSentido() {
         return this.SENTIDO_ELEVADOR;
     }
-
-    public int obtenerPisoActual() {
-        return this.PISO_ACTUAL;
-    }
-
-    public void cambiarSentido() {
-        if (obtenerPisoActual() == 0 && viajesPendientes(1)) {
-            setSentido(1);
-        } else if (getDireccion() == 1 && !viajesPendientes(1)) {
-            setSentido(-1);
-        } else if (getDireccion() == -1 && !viajesPendientes(-1)) {
-            if (viajesPendientes(1)) {
-                setSentido(1);
-            } else if (viajesPendientes(-1)) {
-                setSentido(-1);
-            }
-        }
-    }
-
     public void setSentido(int nuevoSentido) {
         this.SENTIDO_ELEVADOR = nuevoSentido;
-    }
-
-    public void avanza(int pisoMov) {
-        setPisoActual(pisoMov);
-        if (obtenerPisoActual() > 0) {
-            System.out.println("El elevador esta en el piso:  " + getPisoActual());
-        }
-
-    }
-
-    public void setPisoActual(int currentFloor) {
-        this.PISO_ACTUAL = currentFloor;
     }
 
     public int getPisoActual() {
         return this.PISO_ACTUAL;
     }
 
-    public void verGenerador() {
-        for (int viajeActual = 0; viajeActual < gen.viajes.size(); viajeActual++) {
-            generador viaje = (generador) gen.viajes.get(viajeActual);
-
-            if (pisoDestino(viaje)) {
-                setPasajeros(-viaje.cantidad);
-                System.out.println(viaje.cantidad + " personas llegaron a su destino. Personas restantes: "
-                        + getPasajeros() + " al nivel: " + getDireccion());
-                viaje.estado = 0;
-
-                // gen.viajes.remove(viajeActual); // no se si esto es necesario pero elimina el
-                // viaje una vez terminado
-            }
-        }
-        for (int viajeActual = 0; viajeActual < gen.viajes.size(); viajeActual++) {
-            generador viaje = (generador) gen.viajes.get(viajeActual);
-
-            if (pisoOrigen(viaje)) {
-
-                if (validarEspacio(viaje) && (getDireccion() == viaje.direccion || getPasajeros() == 0)) {
-                    if (viaje.estado == 2) {
-                        setSentido(viaje.direccion);
-                    }
-                    setPasajeros(viaje.cantidad);
-                    System.out.println(viaje.cantidad + " entraron al elevador. pasajeros: "
-                            + getPasajeros() + " Direction: " + getDireccion());
-                    viaje.estado = 1;
-                }
-            }
-
-        }
-
+    public void setPisoActual(int currentFloor) {
+        this.PISO_ACTUAL = currentFloor;
     }
 
-    public boolean pisoDestino(generador viaje) {
-        if (getPisoActual() == viaje.destino && viaje.estado == 1) {// estado 1 = en curso
-            return true;
-        }
-        return false;
-    }
 
-    public boolean validarEspacio(generador viaje) {
-        if (getPasajeros() + viaje.cantidad <= this.CAPACIDAD_MAXIMA) {
-            return true;
-        }
-        return false;
+    public void setViajes() {
+        this.CONTADOR_VIAJES+= 1;
     }
 
     public int getPasajeros() {
@@ -216,11 +111,152 @@ public class elevador extends Thread {
         this.CONTADOR_PASAJEROS += pasajeros;
     }
 
-    public boolean pisoOrigen(generador viaje) {
-        if (obtenerPisoActual() == viaje.origen && viaje.estado == 2) {// estado 2 = pendiente
+    public void avanza(int pisoMov) {
+        setPisoActual(pisoMov);
+        if (getPisoActual() > 0) {
+            System.out.println("El elevador esta en el piso:  " + getPisoActual());
+        }
+
+    }
+
+    public boolean validarEspacio(generador viaje) {
+        if (getPasajeros() + viaje.cantidad <= this.CAPACIDAD_MAXIMA) {
             return true;
         }
         return false;
     }
+
+    public boolean pisoOrigen(generador viaje) {
+        if (getPisoActual() == viaje.origen && viaje.estado == 2) {// estado 2 = pendiente
+            return true;
+        }
+        return false;
+    }
+
+    public boolean pisoDestino(generador viaje) {
+        if (getPisoActual() == viaje.destino && viaje.estado == 1) {// estado 1 = en curso
+            return true;
+        }
+        return false;
+    }
+
+    public int validarViajes() {
+		int pendingRequests = 0;
+		for (int viajeActual = 0; viajeActual < gen.viajes.size(); viajeActual++) {
+			generador viaje = (generador) gen.viajes.get(viajeActual);
+			if (viaje.estado == 2) {
+				pendingRequests++;
+			}
+		}
+		return pendingRequests;
+	}
+
+    public void cambiarSentido() {
+        if (getPisoActual() == 0 && viajesPendientes(1)) {
+            setSentido(1);
+
+        } else if (getSentido() == 1 && !viajesPendientes(1)) {
+            setSentido(-1);
+
+        } else if (getSentido() == -1 && !viajesPendientes(-1)) {
+            setSentido(0);
+        }else if(getSentido() == 0){
+            if (viajesPendientes(1)) {
+                setSentido(1);
+            } else if (viajesPendientes(-1)) {
+                setSentido(-1);
+            }
+        }
+    }
+
+    public boolean viajesPendientes() {
+        /*
+         * comprobamos si existe algun viaje pendiente sin distinguir el destino/sentido
+         */
+        for (int viajeActual = 0; viajeActual < gen.viajes.size(); viajeActual++) {
+            generador viaje = (generador)gen.viajes.get(viajeActual);
+            if (viaje.estado == 2 || viaje.estado == 1) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean viajesPendientes(int sentido) {
+        boolean pendientes = false;
+        switch (sentido) {
+            case 1:
+            /*
+             * Se comprueba en la lista de viajes si existe alguno pendiente o en progreso con direccion hacia arriba
+             * o tambien representada con el sentido==1
+             */
+            for (int viajeActual = 0; viajeActual < gen.viajes.size(); viajeActual++) {
+                    generador viaje = (generador) gen.viajes.get(viajeActual);
+                    if ((viaje.destino >= getPisoActual() && viaje.estado == 1)
+                            || (viaje.origen >= getPisoActual() && viaje.estado == 2)) {
+                        pendientes = true;
+                        break;
+                    }
+                }
+                break;
+                /*
+                 * Se comprueba en la lista de viajes si existe alguno pendiente o en progreso con direccion hacia abajo o tambien representada con el sentido==-1
+                 */
+                case -1:
+                for (int viajeActual = 0; viajeActual < gen.viajes.size(); viajeActual++) {
+                    generador viaje = (generador) gen.viajes.get(viajeActual);
+                    if ((viaje.origen <= getPisoActual() && viaje.estado == 2)
+                            || (viaje.destino <= getPisoActual() && viaje.estado == 1)) {
+                        pendientes = true;
+                        break;
+                    }
+                }
+                break;
+                default:
+                break;
+        }
+        return pendientes;
+
+    }
+
+    public void verGenerador() {
+        for (int viajeActual = 0; viajeActual < gen.viajes.size(); viajeActual++) {
+            generador viaje = (generador) gen.viajes.get(viajeActual);
+
+            if (pisoDestino(viaje)) {
+                setPasajeros(-viaje.cantidad);
+                System.out.println(viaje.cantidad + " personas llegaron a su destino. Personas restantes: "
+                        + getPasajeros() + " al nivel: " + getSentido());
+                viaje.estado = 0;
+                setViajes();
+                
+
+                // gen.viajes.remove(viajeActual); // no se si esto es necesario pero elimina el
+                // viaje una vez terminado
+            }
+        }
+        for (int viajeActual = 0; viajeActual < gen.viajes.size(); viajeActual++) {
+            generador viaje = (generador) gen.viajes.get(viajeActual);
+
+            if (pisoOrigen(viaje)) {
+                if(!validarEspacio(viaje)) {
+                    System.out.println("No hay espacio para subir a las personas");
+                    break;
+                }
+                if (validarEspacio(viaje) && (getSentido() == viaje.direccion || validarViajes() == 1)) {
+                    if (validarViajes() == 2) {
+                        setSentido(viaje.direccion);
+                    }
+                    setPasajeros(viaje.cantidad);
+                    System.out.println(viaje.cantidad + " entraron al elevador. pasajeros: "
+                            + getPasajeros() + " Con destino "+viaje.destino+" y direction: " + (getSentido() == 1? "Arriba" : "Abajo"));
+                    viaje.estado = 1;
+                }
+            }
+
+        }
+
+    }
+
 
 }

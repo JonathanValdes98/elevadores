@@ -1,14 +1,17 @@
 public class main {
 
     public static void main(String[] args) {
-
-        generador gen = new generador();
-        viaje viaje = new viaje(3, 8, 15, gen);
+        /*
+         * se debe validar que el numero de viajes generados sea igual al maximo de viajes del elevador para que finalice el programa
+         * si se generan errores reiniciar el vs code funciona
+         */
+        generador gen = new generador(); // clase que almacena los viajes
+        viaje viaje = new viaje(10, 8, 15, gen);// hilo que genera los datos de cada viaje
 
         hotel pisos = new hotel(15);
-        elevador elevador1 = new elevador(pisos, 1, 15, gen, 10);
+        elevador el = new elevador(pisos, gen, 1, 15, 10);
 
-        elevador1.start();
+        el.start();
         viaje.start();
 
     }

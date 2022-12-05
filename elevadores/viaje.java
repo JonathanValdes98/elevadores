@@ -14,12 +14,13 @@ public class viaje extends Thread {
 		this.generados = 1;
 	}
 
+ @Override
 	public void run() {
 		try {
 			while (getGenerados() <= getCantidad()) {
 				sleep((long) (Math.random() * 9000 + 1000));
-				int origen = (int) (Math.random() * (1 - (getMaxPisos() + 1)) + getMaxPisos() + 1);
-				int destino = (int) (Math.random() * (1 - (getMaxPisos() + 1)) + getMaxPisos() + 1);
+				int origen = (int) (Math.random() * (1 - (getMaxPisos())) + getMaxPisos());
+				int destino = (int) (Math.random() * (1 - (getMaxPisos())) + getMaxPisos());
 				int cantidad = (int) (Math.random() * (1 - getMaxPersonas()) + getMaxPersonas());
 				while (origen == destino) {
 					destino = (int) (Math.random() * 10);
