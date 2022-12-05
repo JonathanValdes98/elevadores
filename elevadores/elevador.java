@@ -37,19 +37,18 @@ public class elevador extends Thread {
             while (CONTADOR_VIAJES < MAX_VIAJES) {
                 if (getSentido() == 0) {
                     if(getPisoActual() == 0 && !viajesPendientes()){
-                    System.out.println("No hay viajes pendientes, el elevador se encuentra en el piso 1");
-                    synchronized (gen) {
-                        gen.wait();
-                    }
+                        System.out.println("No hay viajes pendientes, el elevador se encuentra en el piso 1");
+                        synchronized (gen) {
+                            gen.wait();
+                        }
                     }
                     for (int pisoActual = getPisoActual(); pisoActual >= 0; pisoActual--) {
                         cambiarSentido();
                         if (getSentido() != 0) {
                             break;
                         }
-                        Thread.sleep(300);
+                        sleep(300);
                         avanza(pisoActual);
-
                     }
                 } else if (getSentido() == 1) {
                     for (int pisoActual = getPisoActual(); pisoActual < this.pisos.getPisos(); pisoActual++) {
@@ -57,8 +56,7 @@ public class elevador extends Thread {
                         if (getSentido() != 1) {
                             break;
                         }
-
-                        Thread.sleep(300);
+                        sleep(300);
                         avanza(pisoActual);
                         verGenerador();
                     }
@@ -68,8 +66,7 @@ public class elevador extends Thread {
                         if (getSentido() != -1) {
                             break;
                         }
-
-                        Thread.sleep(300);
+                        sleep(300);
                         avanza(pisoActual);
                         verGenerador();
                     }
