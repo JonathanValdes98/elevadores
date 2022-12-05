@@ -37,7 +37,7 @@ public class viaje extends Thread {
 					gen.notify();
 				}
 				System.out.println(
-						"Viaje de " + cantidad + " personas desde el piso " + origen + " hasta el piso " + destino);
+						"Se ha solicitado el ascensor: viaje de " + cantidad + " personas desde el piso " + origen + " hasta el piso " + destino);
 				generados++;
 			}
 		} catch (

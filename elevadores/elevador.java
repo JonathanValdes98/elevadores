@@ -35,41 +35,51 @@ public class elevador extends Thread {
     public void run() {
         try {
             while (CONTADOR_VIAJES < MAX_VIAJES) {
-                if (getSentido() == 0) {
-                    if(getPisoActual() == 0 && !viajesPendientes()){
-                        System.out.println("No hay viajes pendientes, el elevador se encuentra en el piso 1");
-                        synchronized (gen) {
-                            gen.wait();
+                switch (getSentido()){
+                    case 0:// detenido
+                        if(getPisoActual() == 0 && !viajesPendientes()){
+                            System.out.println("No hay viajes pendientes, el elevador se encuentra en el piso 1");
+                            synchronized (gen) {
+                                gen.wait();
+                            }
                         }
-                    }
-                    for (int pisoActual = getPisoActual(); pisoActual >= 0; pisoActual--) {
-                        cambiarSentido();
-                        if (getSentido() != 0) {
-                            break;
+                        for (int pisoActual = getPisoActual(); pisoActual >= 0; pisoActual--) {
+                            /*
+                             * El asensor bajara hasta el piso 1 sino encuentra viajes pendientes y su sentido es 0(detenido)
+                             */
+                            cambiarSentido();// validamos viajes pendientes y en funcion de eso cambiamos el sentido
+                            if (getSentido() != 0) {
+                                break;
+                            }
+                            sleep(300);
+                            avanza(pisoActual);
                         }
-                        sleep(300);
-                        avanza(pisoActual);
-                    }
-                } else if (getSentido() == 1) {
-                    for (int pisoActual = getPisoActual(); pisoActual < this.pisos.getPisos(); pisoActual++) {
-                        cambiarSentido();
-                        if (getSentido() != 1) {
-                            break;
+                        break;
+                    case 1:// subiendo
+                        for (int pisoActual = getPisoActual(); pisoActual < this.pisos.getPisos(); pisoActual++) {
+                            cambiarSentido();// validamos viajes pendientes y en funcion de eso cambiamos el sentido
+                            if (getSentido() != 1) {
+                                break;
+                            }
+                            sleep(300);
+                            avanza(pisoActual);
+                            verGenerador();
                         }
-                        sleep(300);
-                        avanza(pisoActual);
-                        verGenerador();
-                    }
-                } else if (getSentido() == -1) {
-                    for (int pisoActual = getPisoActual(); pisoActual >= 0; pisoActual--) {
-                        cambiarSentido();
-                        if (getSentido() != -1) {
-                            break;
+                        break;
+                    case -1:// bajando
+                        for (int pisoActual = getPisoActual(); pisoActual >= 0; pisoActual--) {
+                            cambiarSentido();// validamos viajes pendientes y en funcion de eso cambiamos el sentido
+                            if (getSentido() != -1) {
+                                break;
+                            }
+                            sleep(300);
+                            avanza(pisoActual);
+                            verGenerador();
                         }
-                        sleep(300);
-                        avanza(pisoActual);
-                        verGenerador();
-                    }
+                        break;
+                    default:
+                        System.out.println("Error en el sentido del elevador");
+                        break;
                 }
 
             }
@@ -111,7 +121,7 @@ public class elevador extends Thread {
     public void avanza(int pisoMov) {
         setPisoActual(pisoMov);
         if (getPisoActual() > 0) {
-            System.out.println("El elevador esta en el piso:  " + getPisoActual());
+            System.out.println("Piso:  " + getPisoActual());
         }
 
     }
