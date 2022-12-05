@@ -151,10 +151,8 @@ public class elevador extends Thread {
     public void cambiarSentido() {
         if (getPisoActual() == 0 && viajesPendientes(1)) {
             setSentido(1);
-
         } else if (getSentido() == 1 && !viajesPendientes(1)) {
             setSentido(-1);
-
         } else if (getSentido() == -1 && !viajesPendientes(-1)) {
             setSentido(0);
         }else if(getSentido() == 0){
